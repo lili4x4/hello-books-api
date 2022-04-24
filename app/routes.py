@@ -1,5 +1,4 @@
-from flask import Blueprint
-from sqlalchemy import desc
+from flask import Blueprint, jsonify
 
 class Book:
     def __init__(self, id, title, description):
@@ -10,12 +9,14 @@ class Book:
 books = [
     Book(1, "The Name of the Wind", "The first book in the Kingkiller Chronicles fantasy trilogy."),
     Book(2, "The Wise Man's Fear", "The first book in the Kingkiller Chronicles fantasy trilogy."),
-    Book(3, "The Doors of Stone", "The supposed third book in the Kingkiller Chronicles trilogy, which apparently will never be released."
+    Book(3, "The Doors of Stone", "The supposed third book in the Kingkiller Chronicles trilogy, which apparently will never be released.")
 ]
 
 
 
 hello_world_bp = Blueprint("hello_world", __name__)
+
+books_bp = Blueprint("books", __name__, url_prefix="/books")
 
 @hello_world_bp.route("/hello-world", methods=["GET"])
 def say_hello_world():
@@ -41,3 +42,27 @@ def broken_endpoint():
     response_body["hobbies"].append(new_hobby)
     return response_body
 
+@books_bp.route("", methods=["GET"])
+def handle_books():
+    books_response = []
+    for book in books:
+        books_response.append({
+            "id": book.id,
+            "title": book.title,
+            "description": book.description
+        })
+    return jsonify(books_response)
+
+@books_bp.route("/<book_id>", methods=["GET"])
+def handle_book(book_id):
+    book_id = int(book_id)
+
+    for book in books:
+        if book.id == book_id:
+            return {
+                "id": book.id,
+                "title": book.title,
+            "description": book.description
+            }
+    
+    return {"message": f"Book {book_id} not found"}, 404
